@@ -6,12 +6,17 @@ from uuid import uuid4
 
 import requests
 from flask import Flask, jsonify, request
+import config
+import socket
+from promise import Promise
 
 
 class Blockchain:
     def __init__(self):
         self.chain = []
         self.nodes = set()
+        self.isps = {}
+        self.clouds = {}
 
         self.new_block(previous_hash='1', proof=100)
 
@@ -25,26 +30,20 @@ class Blockchain:
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
-
         self.chain.append(block)
         return block
 
-    def new_transaction(self, sender, recipient, amount):
+    def new_transaction(self, cloud_id, isp_id, data):
 
         self.chain[-1]['transactions'].append({
-            'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
+            'cloud_id': cloud_id,
+            'isp_id': isp_id,
+            'data': data,
         })
-
         return
 
 
     def register_node(self, address):
-        """
-        Add a new node to the list of nodes
-        :param address: Address of node. Eg. 'http://192.168.0.5:5000'
-        """
 
         parsed_url = urlparse(address)
         if parsed_url.netloc:
@@ -55,14 +54,10 @@ class Blockchain:
         else:
             raise ValueError('Invalid URL')
 
+
     @staticmethod
     def hash(block):
-        """
-        Creates a SHA-256 hash of a Block
-        :param block: Block
-        """
 
-        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
@@ -76,13 +71,43 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+buffer = {
+    # transaction_id : 0
+}
+
+
 
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
     values = request.get_json()
-    required = ['type', 'cloud_id', 'isp_id', 'data']
+    required = ['type', 'cloud_id', 'transaction_id', 'isp_id', 'data']
     if not all(k in values for k in required):
         return 'Missing values', 400
+
+
+
+
+
+@app.route('/register_node', methods=['POST'])
+def post_crypto():
+    values = request.get_json()
+    required = ['address']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    address = values.get('address')
+    if address not in blockchain.nodes:
+        blockchain.register_node(address)
+        for neighbor in blockchain.nodes:
+            requests.post(url=neighbor+'/register_node', data={'address': address})
+
+    response = {
+        'address_list': list(blockchain.nodes)
+    }
+    return jsonify(response), 201
+
+@app.route('/register_isp', methods=['POST'])
+def register_isp():
+    return
 
 
 
@@ -95,3 +120,9 @@ if __name__ == '__main__':
     port = args.port
 
     app.run(host='0.0.0.0', port=port)
+    myname = socket.getfqdn(socket.gethostbyname())
+    myaddr = socket.gethostbyname(myname)
+    print(myname)
+    print(myaddr)
+    if myaddr != config.blockchain_address:
+        requests.post(url=config.blockchain_address+'/register_node', data={'address': myaddr})
