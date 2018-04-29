@@ -35,6 +35,13 @@ Returns: {
   
 # Client cloud: 
 
-# Client ISP: 
-
+# Server ISP: 
+blockchain: post("/get_transaction")  
+params: {  
+	transaction_id: string
+}  
+returns: {  
+	isp_id: string
+	data: string
+}
 # User: 
