@@ -15,8 +15,7 @@ class Blockchain:
     def __init__(self):
         self.chain = []
         self.nodes = set()
-        self.isps = {}
-        self.clouds = {}
+        self.isps = {} # key: isp name, value: isp address.
 
         self.new_block(previous_hash='1', proof=100)
 
@@ -95,8 +94,8 @@ def post_crypto():
     isp_id = values.get('isp_id')
     data = values.get('data')
     buffer[transaction_id] = []
-    for neighbor in blockchain.nodes:
-        result = requests.post(url=neighbor + '/get_transaction', data={'transaction_id': transaction_id}).json()
+    for isp in blockchain.isps:
+        result = requests.post(url=blockchain.isps[isp] + '/get_transaction', data={'transaction_id': transaction_id}).json()
         buffer[transaction_id].append({
             'cloud_id': cloud_id,
             'isp_id': result['isp_id'],
@@ -109,11 +108,11 @@ def post_crypto():
     if not equal(sum, data):
         return 'Wrong value provided!', 400
     blockchain.new_transaction(cloud_id, isp_id, data)
-    return 'success!', 201
+    return 'post transaction success!', 201
 
 
 @app.route('/register_node', methods=['POST'])
-def post_crypto():
+def register_node():
     values = request.get_json()
     required = ['address']
     if not all(k in values for k in required):
@@ -129,11 +128,33 @@ def post_crypto():
     }
     return jsonify(response), 201
 
+
 @app.route('/register_isp', methods=['POST'])
 def register_isp():
+    values = request.get_json()
+    required = ['address', 'name']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    address = values.get('address')
+    name = values.get('name')
+    blockchain.isps[name] = address
+    return 'register isp success!', 201
 
+
+@app.route('/query', methods=['POST'])
+def query():
+    values = request.get_json()
+    required = ['cloud_list']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    cloud_list = values.get('cloud_list')
+    # for
+    requests.post(url=config.evaluator_address + '/query', data={'crypto_list': cloud_list})
     return
 
+@app.route('/get_chain', methods=['GET'])
+def query():
+    return jsonify({'chain': blockchain.chain}), 200
 
 
 if __name__ == '__main__':
