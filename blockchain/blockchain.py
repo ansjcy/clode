@@ -72,17 +72,33 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 buffer = {
-    # transaction_id : 0
+    # transaction_id : [{}]
 }
 
 
 
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
+
+    # def fun(resolve, reject, address):
+    #     requests.post(url=neighbor + '/get_transaction', data={'transaction_id': values.get('transaction_id')})
+    #     resolve('')
+
     values = request.get_json()
     required = ['type', 'cloud_id', 'transaction_id', 'isp_id', 'data']
     if not all(k in values for k in required):
         return 'Missing values', 400
+    transaction_id = values.get('transaction_id')
+    buffer[transaction_id] = []
+    for neighbor in blockchain.nodes:
+        result = requests.post(url=neighbor + '/get_transaction', data={'transaction_id': transaction_id})
+        buffer[transaction_id].append({
+            cloud_id:
+        })
+
+        # ready to do evaluation.
+
+
 
 
 
