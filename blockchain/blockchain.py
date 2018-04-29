@@ -200,12 +200,14 @@ def post_crypto():
             'isp_id': result['isp_id'],
             'data': result['data']
         })
-
-    sum = 0
-    for trans in buffer[transaction_id]:
-        sum += trans.data
-    if not equal(sum, data):
+        if result['isp_id'] == isp_id:
+            if equal(result['data'], data):
+                continue
+        else:
+            if equal(result['data'], 0):
+                continue
         return 'Wrong value provided!', 400
+
     blockchain.new_transaction(cloud_id, isp_id, data)
     return 'post transaction success!', 201
 
