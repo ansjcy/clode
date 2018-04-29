@@ -1,7 +1,6 @@
 # Server Blockchain: 
 Cloud, ISP -> post (“/crypto”)   
 Params: {  
-		type: string (“cloud_crypto”/”isp_crypto”)  
 		cloud_id: string  
 		transaction_id: string  
 		isp_id: string  
