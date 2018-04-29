@@ -1,4 +1,4 @@
-Server Blockchain: 
+#Server Blockchain: 
 Cloud, ISP -> post (“/crypto”)
 Params: {
 		type: string (“cloud_crypto”/”isp_crypto”)
@@ -18,7 +18,7 @@ Returns: {
 		overlap: double
 }
 
-Server A B C: 
+#Server A B C: 
 Blockchain: Post (“/query”)
 Params: {
 	crypto_list: [[string]]
@@ -33,8 +33,8 @@ Returns: {
 	public_key: string
 }
 
-Client cloud: 
+#Client cloud: 
 
-Client ISP: 
+#Client ISP: 
 
-User: 
+#User: 
