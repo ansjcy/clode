@@ -148,12 +148,25 @@ def query():
     if not all(k in values for k in required):
         return 'Missing values', 400
     cloud_list = values.get('cloud_list')
-    # for
-    requests.post(url=config.evaluator_address + '/query', data={'crypto_list': cloud_list})
+    if len(cloud_list) < 2:
+        return 'cloud list too short!', 400
+    cloud_trans = {}
+    for id in cloud_list:
+        cloud_trans[id] = {}
+    for block in blockchain.chain:
+        for trans in block['transactions']:
+            for id in cloud_list:
+                if trans['cloud_id'] == id:
+                    if trans['isp_id'] not in cloud_trans[id]:
+                        cloud_trans[id][trans['isp_id']] = 0
+                    cloud_trans[id][trans['isp_id']]+=1
+    query_body = []
+
+    requests.post(url=config.evaluator_address + '/query', data={'crypto_list': query_body})
     return
 
 @app.route('/get_chain', methods=['GET'])
-def query():
+def get_chain():
     return jsonify({'chain': blockchain.chain}), 200
 
 
