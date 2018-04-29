@@ -16,7 +16,7 @@ class Blockchain:
         self.chain = []
         self.nodes = set()
         self.isps = {}
-        self.clouds = {}
+        self.isp_num = 0
 
         self.new_block(previous_hash='1', proof=100)
 
@@ -60,6 +60,13 @@ class Blockchain:
 
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
+
+    def register_isp(self, isp_name, isp_address):
+        if isp_name not in self.isps:
+            self.isps[isp_name] = (self.isp_num, isp_address)
+            self.isp_num += 1
+
+
 
 
 # Instantiate the Node
