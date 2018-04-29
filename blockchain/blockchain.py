@@ -259,13 +259,19 @@ def query():
                         cloud_trans[id][trans['isp_id']] = 0
                     cloud_trans[id][trans['isp_id']]+=1
     query_body = []
+    isps = cloud_trans[0].keys()
+    for isp in isps:
+        query_body.append([])
+        for id in cloud_trans:
+            query_body[-1].append(cloud_trans[id][isp])
+    result = requests.post(url=config.evaluator_address + '/query', data={'crypto_list': query_body})
+    return jsonify({'overlap': result['overlap']}), 200
 
-    requests.post(url=config.evaluator_address + '/query', data={'crypto_list': query_body})
-    return
 
 @app.route('/get_chain', methods=['GET'])
 def get_chain():
     return jsonify({'chain': blockchain.chain}), 200
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
