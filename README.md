@@ -1,8 +1,8 @@
 # Server Blockchain: 
 Cloud, ISP -> post (“/crypto”)   
 Params: {  
-		type: string (“cloud_crypto”/”isp_crypto”)  
-cloud_id: string  
+		cloud_id: string  
+		transaction_id: string  
 		isp_id: string  
 		data: string  
 }  
@@ -35,6 +35,13 @@ Returns: {
   
 # Client cloud: 
 
-# Client ISP: 
-
+# Server ISP: 
+blockchain: post("/get_transaction")  
+params: {  
+	transaction_id: string
+}  
+returns: {  
+	isp_id: string
+	data: string
+}
 # User: 
