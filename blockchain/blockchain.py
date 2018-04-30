@@ -248,6 +248,7 @@ def new_trans():
 
 @app.route('/register_node', methods=['POST'])
 def register_node():
+    print("register_node")
     values = request.get_json()
     required = ['address']
     if not all(k in values for k in required):
