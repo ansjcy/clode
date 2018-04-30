@@ -1,1 +1,4 @@
-./evaluator
+evaluator/evaluator/
+evaluator/key.pkl
+evaluator/__pycache__/
+evaluator/app/__pycache__/
