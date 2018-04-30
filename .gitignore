@@ -4,3 +4,8 @@ evaluator/__pycache__/
 evaluator/app/__pycache__/
 *.iml
 *.iml
+*.xml
+*.pyc
+cloud/.DS_Store
+blockchain/refer.py
+.DS_Store
