@@ -2,6 +2,8 @@ import requests
 import config
 import time
 import pickle
+import random
+import math
 
 transactions = []
 cloud_name = ""
@@ -60,8 +62,12 @@ def allocate_key(address_list):
 def encrypt(data):
 
     for pkey in pkeys:
-        pass
-    return 0
+        while 1:
+            k = random.randint(1, pkey.p - 1)
+            if math.gcd(k, pkey.p - 1) == 1: break
+        data = pkey.publickey().encrypt(data, k)
+
+    return data
 
 
 if __name__ == '__main__':

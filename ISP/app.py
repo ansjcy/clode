@@ -5,6 +5,8 @@ import requests
 import config
 import time
 import pickle
+import random
+import math
 
 transactions = []
 server_name = ""
@@ -55,8 +57,12 @@ def allocate_key(address_list):
 def encrypt(data):
 
     for pkey in pkeys:
-        pass
-    return 0
+        while 1:
+            k = random.randint(1, pkey.p - 1)
+            if math.gcd(k, pkey.p - 1) == 1: break
+        data = pkey.publickey().encrypt(data, k)
+
+    return data
 
 
 if __name__ == '__main__':
@@ -68,7 +74,7 @@ if __name__ == '__main__':
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
-    res = requests.post(url=config.blockchain_address + port + '/register_ISP', json={'address': myaddr, 'name': myname})
+    res = requests.post(url=config.blockchain_address + config.port + '/register_ISP', json={'address': myaddr, 'name': myname})
     print ("ISP register succeed!")
 
     import controller.index as index
