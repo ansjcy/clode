@@ -222,7 +222,7 @@ def post_crypto():
     #         'data': result['data']
     #     })
     result = requests.post(url=blockchain.isps[isp_id] + '/get_transaction', data={'transaction_id': transaction_id}).json()
-    if not equal(result['data'], data):
+    if not equal(result['data'], data) or not cloud_id == result['cloud_id']:
         return 'Wrong value!', 400
 
     transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
