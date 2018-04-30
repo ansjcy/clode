@@ -10,6 +10,9 @@ import socket
 from multiprocessing import Process
 import pickle
 
+myname = socket.getfqdn(socket.gethostname())
+myaddr = socket.gethostbyname(myname)
+
 class Blockchain:
     def __init__(self):
         self.chain = []
@@ -222,7 +225,7 @@ def post_crypto():
     #         'data': result['data']
     #     })
 
-    result = requests.post(url='http://'+blockchain.isps[isp_id] + '/get_transaction', json={'transaction_id': transaction_id}).json()
+    result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id}).json()
     if not equal(result['data'], data) or not cloud_id == result['cloud_id']:
         return 'Wrong value!', 400
 
@@ -231,7 +234,7 @@ def post_crypto():
         blockchain.new_transaction(*each_tran)
 
     for neighbor in blockchain.nodes:
-        requests.post(url='http://'+neighbor+'/new_transaction', json={'data': transaction}).json()
+        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transaction}).json()
 
     return 'post transaction success!', 201
 
@@ -255,10 +258,13 @@ def register_node():
     if not all(k in values for k in required):
         return 'Missing values', 400
     address = values.get('address')
-    if address not in blockchain.nodes:
+    print(blockchain.nodes)
+    print(address)
+    if address not in blockchain.nodes and not address == myaddr:
         blockchain.register_node(address)
         for neighbor in blockchain.nodes:
-            requests.post(url='http://'+neighbor+'/register_node', json={'address': address})
+            print("cascade register")
+            requests.post(url='http://'+neighbor+config.port+'/register_node', json={'address': address})
 
     response = {
         'address_list': list(blockchain.nodes)
@@ -277,7 +283,7 @@ def register_isp():
     if name not in blockchain.isps:
         blockchain.isps[name] = address
         for neighbor in blockchain.nodes:
-            requests.post(url='http://'+neighbor + '/register_isp', json=values)
+            requests.post(url='http://'+neighbor + config.port + '/register_isp', json=values)
     return 'register isp success!', 201
 
 
@@ -313,7 +319,7 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url='http://'+config.evaluator_address + '/query', json={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.evaluator_address + config.port + '/query', json={'crypto_list': query_body})
     return jsonify({'overlap': result['overlap']}), 200
 
 
@@ -324,13 +330,10 @@ def get_chain():
 if __name__ == '__main__':
     p = Process(target=blockchain.mine)
     p.start()
-
-    myname = socket.getfqdn(socket.gethostname())
-    myaddr = socket.gethostbyname(myname)
     print(myname)
     print(myaddr)
     if myaddr != config.blockchain_address:
-        res = requests.post(url='http://'+config.blockchain_address+'/register_node', json={'address': myaddr})
+        res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
         res_json = res.json()
         blockchain.nodes = set(res['address_list'])
 
