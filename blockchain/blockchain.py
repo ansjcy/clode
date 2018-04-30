@@ -198,7 +198,7 @@ exit_signal = False
 def post_crypto():
 
     # def fun(resolve, reject, address):
-    #     requests.post(url=neighbor + '/get_transaction', data={'transaction_id': values.get('transaction_id')})
+    #     requests.post(url=neighbor + '/get_transaction', json={'transaction_id': values.get('transaction_id')})
     #     resolve('')
     def equal(data1, data2):
         return data1 - data2 == 0
@@ -215,14 +215,14 @@ def post_crypto():
     data = values.get('data')
     # buffer[transaction_id] = []
     # for isp in blockchain.isps:
-    #     result = requests.post(url=blockchain.isps[isp] + '/get_transaction', data={'transaction_id': transaction_id}).json()
+    #     result = requests.post(url=blockchain.isps[isp] + '/get_transaction', json={'transaction_id': transaction_id}).json()
     #     buffer[transaction_id].append({
     #         'cloud_id': cloud_id,
     #         'isp_id': result['isp_id'],
     #         'data': result['data']
     #     })
 
-    result = requests.post(url='http://'+blockchain.isps[isp_id] + '/get_transaction', data={'transaction_id': transaction_id}).json()
+    result = requests.post(url='http://'+blockchain.isps[isp_id] + '/get_transaction', json={'transaction_id': transaction_id}).json()
     if not equal(result['data'], data) or not cloud_id == result['cloud_id']:
         return 'Wrong value!', 400
 
@@ -231,7 +231,7 @@ def post_crypto():
         blockchain.new_transaction(*each_tran)
 
     for neighbor in blockchain.nodes:
-        requests.post(url='http://'+neighbor+'/new_transaction', data={'data': transaction}).json()
+        requests.post(url='http://'+neighbor+'/new_transaction', json={'data': transaction}).json()
 
     return 'post transaction success!', 201
 
@@ -258,7 +258,7 @@ def register_node():
     if address not in blockchain.nodes:
         blockchain.register_node(address)
         for neighbor in blockchain.nodes:
-            requests.post(url='http://'+neighbor+'/register_node', data={'address': address})
+            requests.post(url='http://'+neighbor+'/register_node', json={'address': address})
 
     response = {
         'address_list': list(blockchain.nodes)
@@ -277,7 +277,7 @@ def register_isp():
     if name not in blockchain.isps:
         blockchain.isps[name] = address
         for neighbor in blockchain.nodes:
-            requests.post(url='http://'+neighbor + '/register_isp', data=values)
+            requests.post(url='http://'+neighbor + '/register_isp', json=values)
     return 'register isp success!', 201
 
 
@@ -313,7 +313,7 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url='http://'+config.evaluator_address + '/query', data={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.evaluator_address + '/query', json={'crypto_list': query_body})
     return jsonify({'overlap': result['overlap']}), 200
 
 
