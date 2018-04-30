@@ -221,7 +221,8 @@ def post_crypto():
     #         'isp_id': result['isp_id'],
     #         'data': result['data']
     #     })
-    result = requests.post(url=blockchain.isps[isp_id] + '/get_transaction', data={'transaction_id': transaction_id}).json()
+
+    result = requests.post(url='http://'+blockchain.isps[isp_id] + '/get_transaction', data={'transaction_id': transaction_id}).json()
     if not equal(result['data'], data) or not cloud_id == result['cloud_id']:
         return 'Wrong value!', 400
 
@@ -230,7 +231,7 @@ def post_crypto():
         blockchain.new_transaction(*each_tran)
 
     for neighbor in blockchain.nodes:
-        requests.post(url=neighbor+'/new_transaction', data={'data': transaction}).json()
+        requests.post(url='http://'+neighbor+'/new_transaction', data={'data': transaction}).json()
 
     return 'post transaction success!', 201
 
@@ -248,6 +249,7 @@ def new_trans():
 
 @app.route('/register_node', methods=['POST'])
 def register_node():
+    print("register_node")
     values = request.get_json()
     required = ['address']
     if not all(k in values for k in required):
@@ -256,7 +258,7 @@ def register_node():
     if address not in blockchain.nodes:
         blockchain.register_node(address)
         for neighbor in blockchain.nodes:
-            requests.post(url=neighbor+'/register_node', data={'address': address})
+            requests.post(url='http://'+neighbor+'/register_node', data={'address': address})
 
     response = {
         'address_list': list(blockchain.nodes)
@@ -275,7 +277,7 @@ def register_isp():
     if name not in blockchain.isps:
         blockchain.isps[name] = address
         for neighbor in blockchain.nodes:
-            requests.post(url=neighbor + '/register_isp', data=values)
+            requests.post(url='http://'+neighbor + '/register_isp', data=values)
     return 'register isp success!', 201
 
 
@@ -311,7 +313,7 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url=config.evaluator_address + '/query', data={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.evaluator_address + '/query', data={'crypto_list': query_body})
     return jsonify({'overlap': result['overlap']}), 200
 
 
@@ -328,8 +330,9 @@ if __name__ == '__main__':
     print(myname)
     print(myaddr)
     if myaddr != config.blockchain_address:
-        res = requests.post(url=config.blockchain_address+'/register_node', data={'address': myaddr})
-        blockchain.nodes = set(res['address_list'])
+        res = requests.post(url='http://'+config.blockchain_address+'/register_node', data={'address': myaddr})
+        res_json = res.json()
+        blockchain.nodes = set(res_json['address_list'])
 
     from argparse import ArgumentParser
 
@@ -338,4 +341,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(host=myaddr, port=port)
