@@ -43,7 +43,6 @@ def view():
             print ("invalid choice")
 
 def allocate_key(address_list):
-    return
 
     for address in address_list:
         res = requests.get(url=address + '/public_key')
@@ -69,7 +68,7 @@ if __name__ == '__main__':
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
-    ##res = requests.post(url=config.blockchain_address + '/register_ISP', data={'address': myaddr, 'name': myname})
+    res = requests.post(url=config.blockchain_address + port + '/register_ISP', json={'address': myaddr, 'name': myname})
     print ("ISP register succeed!")
 
     import controller.index as index
