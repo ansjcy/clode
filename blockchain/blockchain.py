@@ -171,9 +171,9 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
-buffer = {
-    # transaction_id : [{}]
-}
+# buffer = {
+#     # transaction_id : encrypted value #[{}]
+# }
 
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
@@ -183,6 +183,8 @@ def post_crypto():
     #     resolve('')
     def equal(data1, data2):
         return data1 - data2 == 0
+    def encrypt(data):
+        return data
 
     values = request.get_json()
     required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
@@ -192,23 +194,19 @@ def post_crypto():
     cloud_id = values.get('cloud_id')
     isp_id = values.get('isp_id')
     data = values.get('data')
-    buffer[transaction_id] = []
+    # buffer[transaction_id] = []
+    # for isp in blockchain.isps:
+    #     result = requests.post(url=blockchain.isps[isp] + '/get_transaction', data={'transaction_id': transaction_id}).json()
+    #     buffer[transaction_id].append({
+    #         'cloud_id': cloud_id,
+    #         'isp_id': result['isp_id'],
+    #         'data': result['data']
+    #     })
+    result = requests.post(url=blockchain.isps[isp_id] + '/get_transaction', data={'transaction_id': transaction_id}).json()
+    if not equal(result['data'], data):
+        return 'Wrong value!', 400
     for isp in blockchain.isps:
-        result = requests.post(url=blockchain.isps[isp] + '/get_transaction', data={'transaction_id': transaction_id}).json()
-        buffer[transaction_id].append({
-            'cloud_id': cloud_id,
-            'isp_id': result['isp_id'],
-            'data': result['data']
-        })
-        if result['isp_id'] == isp_id:
-            if equal(result['data'], data):
-                continue
-        else:
-            if equal(result['data'], 0):
-                continue
-        return 'Wrong value provided!', 400
-
-    blockchain.new_transaction(cloud_id, isp_id, data)
+        blockchain.new_transaction(cloud_id, isp, data if (isp == isp_id) else encrypt(0))
     return 'post transaction success!', 201
 
 @app.route('/register_node', methods=['POST'])
@@ -259,7 +257,7 @@ def query():
                 if trans['cloud_id'] == id:
                     if trans['isp_id'] not in cloud_trans[id]:
                         cloud_trans[id][trans['isp_id']] = 0
-                    cloud_trans[id][trans['isp_id']]+=1
+                    cloud_trans[id][trans['isp_id']]+=trans['data']
     query_body = []
     isps = cloud_trans[0].keys()
     for isp in isps:
