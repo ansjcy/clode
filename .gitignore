@@ -1,7 +1,0 @@
-
-*.iml
-*.xml
-blockchain/refer.py
-.DS_Store
-blockchain/__pycache__/config.cpython-36.pyc
-evaluator/evaluator/*
