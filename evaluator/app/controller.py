@@ -17,3 +17,14 @@ def query():
     overlap = node.get_overlap(crypto_list, remain_shuf_times)
     query_result = {'overlap': overlap}
     return json.dumps(query_result)
+
+@app.route('/public_key', methods=['GET'])
+def return_public_key():
+    return json.dumps(node.get_public_key())
+
+@app.route('/echo', methods=['POST'])
+def echo():
+    print("receive request")
+    values = request.get_json()
+    resp = {"echo": values['text']}
+    return json.dumps(resp)

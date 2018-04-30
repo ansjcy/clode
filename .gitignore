@@ -1,4 +1,6 @@
 evaluator/evaluator/
-evaluator/key.pkl
+evaluator/key.txt
 evaluator/__pycache__/
 evaluator/app/__pycache__/
+evaluator/.idea
+evaluator/Key1.pem

@@ -7,27 +7,53 @@ from Crypto.Util.number import GCD
 import random
 import pickle
 import math
+import config
+import sys
+import socket
 
 class Node:
-    def __init__(self, ip):
-        print("init node")
-        self.ip = ip
+    def __init__(self):
         # with open('key.pkl', 'wb') as output:
         #     self.key = ElGamal.generate(1024, Random.new().read)
         #     pickle.dump(self.key, output, pickle.HIGHEST_PROTOCOL)
-        with open('key.pkl', 'rb') as input:
-            self.key = pickle.load(input)
-        print(ip)
+        # with open('key.pkl', 'rb') as input:
+        #     self.key = pickle.load(input)
+        # self.key = ElGamal.generate(1024, Random.new().read)
+        # with open('key.txt', 'w') as f:
+        #     f.write(str(self.key.p) + '\n')
+        #     f.write(str(self.key.g) + '\n')
+        #     f.write(str(self.key.y) + '\n')
+        #     f.write(str(self.key.x) + '\n')
+        with open('key.txt', 'r') as f:
+            p = f.readline()
+            g = f.readline()
+            y = f.readline()
+            x = f.readline()
+            self.key = ElGamal.construct((int(p), int(g), int(y), int(x)))
+        print('finish initialization')
 
-    def set_port(self, port):
-        self.port = port
-
-    def set_next(self, nip, nport):
-        self.nip = nip
-        self.nport = nport
+    def config(self):
+        self.hostname = socket.gethostname()
+        if self.hostname == config.SERVER_A_HOSTNAME:
+            self.ip = config.SERVER_A_IP
+            self.next_ip = config.SERVER_B_IP
+        elif self.hostname == config.SERVER_B_HOSTNAME:
+            self.ip = config.SERVER_B_IP
+            self.next_ip = config.SERVER_C_IP
+        elif self.hostname == config.SERVER_C_HOSTNAME:
+            self.ip = config.SERVER_C_IP
+            self.next_ip = config.SERVER_A_IP
+        else:
+            print('invalid hostname')
+            sys.exit(1)
+        self.next_port = config.PORT
+        print('server %s starts...' % self.hostname)
+        print('server ip: %s' % self.ip)
 
     def get_public_key(self):
-        return pickle.dumps(self.key.publickey())
+        return {'p': str(self.key.p),
+                'g': str(self.key.g),
+                'y': str(self.key.y)}
 
     def decrypt(self, crypto_list):
         decrypted = [[self.key.decrypt(cipher) for cipher in pair] for pair in crypto_list]
@@ -38,7 +64,7 @@ class Node:
         return random.shuffle(crypto_list)
 
     def get_decrypt_from_next(self, crypto_list, remain_shuf_times):
-        conn = http.client.HTTPConnection(self.nip, self.nport)
+        conn = http.client.HTTPConnection(self.next_ip, self.next_port)
         params = json.dumps({'crpto_list': crypto_list, 'remain_shuf_times': remain_shuf_times})
         headers = {"Content-type": "application/json"}
         conn.request("POST", "/query", params, headers)
