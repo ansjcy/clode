@@ -263,6 +263,8 @@ def register_node():
     if address not in blockchain.nodes and not address == myaddr:
         blockchain.register_node(address)
         for neighbor in blockchain.nodes:
+            if neighbor == address:
+                continue
             print("cascade register")
             requests.post(url='http://'+neighbor+config.port+'/register_node', json={'address': address})
 
