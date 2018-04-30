@@ -1,2 +1,2 @@
-blockchain_address = '172.26.104.118'
+blockchain_address = '172.26.64.155:5000'
 CA_address = ["", "", ""]

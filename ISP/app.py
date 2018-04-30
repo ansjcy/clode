@@ -45,11 +45,12 @@ def view():
             print ("invalid choice")
 
 def allocate_key(address_list):
+    return
 
     for address in address_list:
-        res = requests.get(url=config.CA1_address + '/public_key')
-        values = request.get_json()
-        pkeys.append(pickle.loads(values['public_key']))
+        res = requests.get(url=address + '/public_key')
+        res = res.json()
+        pkeys.append(pickle.loads(res['public_key']))
 
     return pkeys
 
@@ -70,7 +71,7 @@ if __name__ == '__main__':
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
-    res = requests.post(url=config.blockchain_address + '/register_ISP', data={'address': myaddr, 'name': myname})
+    ##res = requests.post(url=config.blockchain_address + '/register_ISP', data={'address': myaddr, 'name': myname})
     print ("ISP register succeed!")
 
     p = Process(target=view)
