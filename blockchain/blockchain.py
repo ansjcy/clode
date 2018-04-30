@@ -9,9 +9,12 @@ import config
 import socket
 from multiprocessing import Process
 import pickle
+import random
+import math
 
 myname = socket.getfqdn(socket.gethostname())
 myaddr = socket.gethostbyname(myname)
+pkeys = []
 
 class Blockchain:
     def __init__(self):
@@ -197,6 +200,27 @@ blockchain = Blockchain()
 # signal exit to mine
 exit_signal = False
 
+
+def allocate_key(address_list):
+
+    for address in address_list:
+        res = requests.get(url = address + config.port + '/public_key')
+        res = res.json()
+        pkeys.append(pickle.loads(res['public_key']))
+
+    return pkeys
+
+
+def encrypt(data):
+
+    for pkey in pkeys:
+        while 1:
+            k = random.randint(1, pkey.p - 1)
+            if math.gcd(k, pkey.p - 1) == 1: break
+        data = pkey.publickey().encrypt(data, k)
+
+    return data
+
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
 
@@ -204,9 +228,8 @@ def post_crypto():
     #     requests.post(url=neighbor + '/get_transaction', json={'transaction_id': values.get('transaction_id')})
     #     resolve('')
     def equal(data1, data2):
-        return data1 - data2 == 0
-    def encrypt(data):
-        return data
+        result = requests.post(url='http://' + config.evaluator_address + config.port + '/is_zero', json={'data': data1 - data2}).json()
+        return result['result'] == 0
 
     values = request.get_json()
     required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
@@ -329,15 +352,21 @@ def query():
 def get_chain():
     return jsonify({'chain': blockchain.chain}), 200
 
+
 if __name__ == '__main__':
     p = Process(target=blockchain.mine)
     p.start()
+
     print(myname)
     print(myaddr)
     if myaddr != config.blockchain_address:
         res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
         res_json = res.json()
-        blockchain.nodes = set(res_json['address_list'])
+        blockchain.nodes = set(res['address_list'])
+        print("register node success!")
+
+    allocate_key(config.CA_addresses)
+    print("get public keys success!")
 
     from argparse import ArgumentParser
 
