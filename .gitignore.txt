@@ -1,2 +1,0 @@
-evaluator/evaluator/
-evaluator/key.pkl
