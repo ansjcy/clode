@@ -4,6 +4,8 @@ import time
 import pickle
 import random
 import math
+from Crypto.PublicKey import ElGamal
+from Crypto.Util.number import GCD
 
 transactions = []
 cloud_name = ""
@@ -52,9 +54,13 @@ def view():
 def allocate_key(address_list):
 
     for address in address_list:
-        res = requests.get(url=address + config.port + '/public_key')
+        res = requests.get(url=address + '/public_key')
         res = res.json()
-        pkeys.append(pickle.loads(res['public_key']))
+        p = res['p']
+        g = res['g']
+        y = res['y']
+        pkey = ElGamal.construct(int(p), int(g), int(y))
+        pkeys.append(pkey)
 
     return pkeys
 
@@ -64,7 +70,7 @@ def encrypt(data):
     for pkey in pkeys:
         while 1:
             k = random.randint(1, pkey.p - 1)
-            if math.gcd(k, pkey.p - 1) == 1: break
+            if GCD(k, pkey.p - 1) == 1: break
         data = pkey.publickey().encrypt(data, k)
 
     return data
