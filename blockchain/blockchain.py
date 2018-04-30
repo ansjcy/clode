@@ -335,7 +335,7 @@ if __name__ == '__main__':
     if myaddr != config.blockchain_address:
         res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
         res_json = res.json()
-        blockchain.nodes = set(res['address_list'])
+        blockchain.nodes = set(res_json['address_list'])
 
     from argparse import ArgumentParser
 

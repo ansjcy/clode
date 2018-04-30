@@ -8,32 +8,30 @@ import pickle
 
 transactions = []
 server_name = ""
-loading = True
 pkeys = []
 
 def view():
 
-    while loading:
-        time.sleep(0.1)
+    print ('loading...')
+    time.sleep(2)
 
     quit = False
     while (not quit):
 
-        print ("choose: 1. add new transaction    2. show transaction record    3.quit")
-        choose = input()
+        choose = int(input("choose:\n   1. add new transaction    2. show transaction record    3.quit:\n"))
 
         if choose == 1:
 
-            print ("please input transaction id, cloud name")
-            trans_id = input()
-            cloud_name = input()
-            transactions.append([trans_id, cloud_name])
+            trans_id = input("please input transaction id:\n")
+            cloud_name = input("please input cloud name:\n")
+            transactions.append([trans_id, cloud_name, 1])
 
         elif choose == 2:
 
             print ("transaction id | cloud name")
             for trans in transactions:
-                print ('%16s   %s' %(trans[0], trans[1]))
+                print ('%14s   %10s' %(trans[0], trans[1]))
+            print ("")
 
         elif choose == 3:
 
@@ -74,11 +72,15 @@ if __name__ == '__main__':
     ##res = requests.post(url=config.blockchain_address + '/register_ISP', data={'address': myaddr, 'name': myname})
     print ("ISP register succeed!")
 
-    p = Process(target=view)
-    p.start()
+    import controller.index as index
 
-    import controller.app
-    loading = False
+    p = Process(target=index.app.run, args=(config.host, index.port))
+    p.start()
+    print ("server running!")
+
+    view()
+    p.terminate()
+    p.join()
 
 
 
