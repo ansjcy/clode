@@ -73,6 +73,7 @@ class Node:
             return self.get_decrypt_from_next(shuffled, remain_shuf_times-1)
 
     def test_encrypt_multi(self):
+        
         c=2
         a=c**1
         b=c**1
