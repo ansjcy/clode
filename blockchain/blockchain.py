@@ -1,21 +1,21 @@
 import hashlib
 import json
-from time import time
+import time
 from urllib.parse import urlparse
 from uuid import uuid4
-
 import requests
 from flask import Flask, jsonify, request
 import config
 import socket
-from promise import Promise
-
+from multiprocessing import Process
+import pickle
 
 class Blockchain:
     def __init__(self):
         self.chain = []
         self.nodes = set()
         self.isps = {} # key: isp name, value: isp address.
+        self.current_trans = []
 
         self.new_block(previous_hash='1', proof=100)
 
@@ -24,17 +24,19 @@ class Blockchain:
 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'timestamp': time.time(),
             'transactions': [],
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
+        block['transaction'] = self.current_trans
+        self.current_trans = []
         self.chain.append(block)
         return block
 
     def new_transaction(self, cloud_id, isp_id, data):
 
-        self.chain[-1]['transactions'].append({
+        self.current_trans.append({
             'cloud_id': cloud_id,
             'isp_id': isp_id,
             'data': data,
@@ -144,6 +146,20 @@ class Blockchain:
 
         return proof
 
+    def mine(self):
+
+        while (not exit_signal):
+            start_time = time.time()
+
+            proof = self.proof_of_work(self.last_block)
+            prev_hash = self.hash(self.last_block)
+            self.new_block(proof, prev_hash)
+
+            end_time = time.time()
+            if end_time - start_time < 60:
+                time.sleep(60 - (end_time - start_time))
+            print ('a new mine')
+
     @staticmethod
     def valid_proof(last_proof, proof, last_hash):
         """
@@ -162,6 +178,10 @@ class Blockchain:
     def last_block(self):
         return self.chain[-1]
 
+# buffer = {
+#     # transaction_id : encrypted value #[{}]
+# }
+
 # Instantiate the Node
 app = Flask(__name__)
 
@@ -171,9 +191,8 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
-# buffer = {
-#     # transaction_id : encrypted value #[{}]
-# }
+# signal exit to mine
+exit_signal = False
 
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
@@ -205,9 +224,27 @@ def post_crypto():
     result = requests.post(url=blockchain.isps[isp_id] + '/get_transaction', data={'transaction_id': transaction_id}).json()
     if not equal(result['data'], data):
         return 'Wrong value!', 400
-    for isp in blockchain.isps:
-        blockchain.new_transaction(cloud_id, isp, data if (isp == isp_id) else encrypt(0))
+
+    transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
+    for each_tran in transaction:
+        blockchain.new_transaction(*each_tran)
+
+    for neighbor in blockchain.nodes:
+        requests.post(url=neighbor+'/new_transaction', data={'data': transaction}).json()
+
     return 'post transaction success!', 201
+
+@app.route('/new_transaction', methods=['POST'])
+def new_trans():
+    values = request.get_json()
+    required = ['data']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+
+    transaction = values.get('data')
+    for each_tran in transaction:
+        blockchain.new_transaction(*each_tran)
+
 
 @app.route('/register_node', methods=['POST'])
 def register_node():
@@ -235,7 +272,10 @@ def register_isp():
         return 'Missing values', 400
     address = values.get('address')
     name = values.get('name')
-    blockchain.isps[name] = address
+    if name not in blockchain.isps:
+        blockchain.isps[name] = address
+        for neighbor in blockchain.nodes:
+            requests.post(url=neighbor + '/register_isp', data=values)
     return 'register isp success!', 201
 
 
@@ -257,7 +297,14 @@ def query():
                 if trans['cloud_id'] == id:
                     if trans['isp_id'] not in cloud_trans[id]:
                         cloud_trans[id][trans['isp_id']] = 0
-                    cloud_trans[id][trans['isp_id']]+=trans['data']
+                    cloud_trans[id][trans['isp_id']] += trans['data']
+    for trans in blockchain.current_trans:
+        for id in cloud_list:
+            if trans['cloud_id'] == id:
+                if trans['isp_id'] not in cloud_trans[id]:
+                    cloud_trans[id][trans['isp_id']] = 0
+                cloud_trans[id][trans['isp_id']] += trans['data']
+
     query_body = []
     isps = cloud_trans[0].keys()
     for isp in isps:
@@ -272,8 +319,18 @@ def query():
 def get_chain():
     return jsonify({'chain': blockchain.chain}), 200
 
-
 if __name__ == '__main__':
+    p = Process(target=blockchain.mine)
+    p.start()
+
+    myname = socket.getfqdn(socket.gethostname())
+    myaddr = socket.gethostbyname(myname)
+    print(myname)
+    print(myaddr)
+    if myaddr != config.blockchain_address:
+        res = requests.post(url=config.blockchain_address+'/register_node', data={'address': myaddr})
+        blockchain.nodes = set(res['address_list'])
+
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
@@ -282,9 +339,3 @@ if __name__ == '__main__':
     port = args.port
 
     app.run(host='0.0.0.0', port=port)
-    myname = socket.getfqdn(socket.gethostbyname())
-    myaddr = socket.gethostbyname(myname)
-    print(myname)
-    print(myaddr)
-    if myaddr != config.blockchain_address:
-        requests.post(url=config.blockchain_address+'/register_node', data={'address': myaddr})
