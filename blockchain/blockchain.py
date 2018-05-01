@@ -152,20 +152,6 @@ class Blockchain:
 
         return proof
 
-    def mine(self):
-
-        while (not exit_signal):
-            start_time = time.time()
-
-            proof = self.proof_of_work(self.last_block)
-            prev_hash = self.hash(self.last_block)
-            self.new_block(proof, prev_hash)
-
-            end_time = time.time()
-            if end_time - start_time < 60:
-                time.sleep(60 - (end_time - start_time))
-            print ('a new mine')
-
     @staticmethod
     def valid_proof(last_proof, proof, last_hash):
         """
@@ -179,6 +165,33 @@ class Blockchain:
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
+
+    @staticmethod
+    def mine(blockchain):
+
+        while (not exit_signal):
+            start_time = time.time()
+
+            proof = blockchain.proof_of_work(blockchain.last_block)
+            prev_hash = blockchain.hash(blockchain.last_block)
+
+            with open(config.transactions_file, 'rb') as tf:
+                current_trans = pickle.load(tf)
+                if blockchain.current_trans != current_trans:
+                    blockchain.current_trans = current_trans
+                    blockchain.new_block(proof, prev_hash)
+                    with open(config.chain_file, 'wb') as cf:
+                        pickle.dump(blockchain.chain, cf)
+
+            with open(config.transactions_file, 'wb') as tf:
+                pickle.dump([], tf)
+
+            end_time = time.time()
+
+            if end_time - start_time < config.mine_time:
+                time.sleep(max(0, config.mine_time - (end_time - start_time)))
+            print ('a new mine')
+            print (len(blockchain.chain))
 
     @property
     def last_block(self):
@@ -253,8 +266,12 @@ def post_crypto():
         return 'Wrong value!', 400
 
     transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
+    with open(config.chain_file, 'rb') as cf:
+        blockchain.chain = pickle.load(cf)
     for each_tran in transaction:
         blockchain.new_transaction(*each_tran)
+    with open(config.transaction_file, 'wb') as tf:
+        pickle.dump(tf, blockchain.current_trans)
 
     for neighbor in blockchain.nodes:
         requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transaction}).json()
@@ -269,8 +286,12 @@ def new_trans():
         return 'Missing values', 400
 
     transaction = values.get('data')
+    with open(config.chain_file, 'rb') as cf:
+        blockchain.chain = pickle.load(cf)
     for each_tran in transaction:
         blockchain.new_transaction(*each_tran)
+    with open(config.transaction_file, 'wb') as tf:
+        pickle.dump(tf, blockchain.current_trans)
 
 
 @app.route('/register_node', methods=['POST'])
@@ -354,19 +375,23 @@ def get_chain():
 
 
 if __name__ == '__main__':
-    p = Process(target=blockchain.mine)
+
+    with open(config.transactions_file, 'wb') as tf:
+        pickle.dump([], tf);
+
+    p = Process(target=Blockchain.mine, args=(blockchain, ))
     p.start()
 
     print(myname)
     print(myaddr)
-    if myaddr != config.blockchain_address:
-        res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
-        res_json = res.json()
-        blockchain.nodes = set(res['address_list'])
-        print("register node success!")
+    # if myaddr != config.blockchain_address:
+    #     res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
+    #     res_json = res.json()
+    #     blockchain.nodes = set(res['address_list'])
+    #     print("register node succeed!")
 
-    allocate_key(config.CA_addresses)
-    print("get public keys success!")
+    # allocate_key(config.CA_addresses)
+    # print("get public keys success!")
 
     from argparse import ArgumentParser
 
@@ -375,4 +400,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
+    while (1):
+        print(len(blockchain.chain))
+        time.sleep(1)
     app.run(host=myaddr, port=port)
