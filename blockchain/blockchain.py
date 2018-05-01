@@ -286,7 +286,7 @@ def post_crypto():
     for transaction in transactions:
         blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
     with open(config.transactions_file, 'wb') as tf:
-        pickle.dump(tf, blockchain.current_trans)
+        pickle.dump(blockchain.current_trans, tf)
 
     for neighbor in blockchain.nodes:
         requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transactions}).json()
@@ -306,8 +306,10 @@ def new_trans():
     for transaction in transactions:
         blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
     with open(config.transactions_file, 'wb') as tf:
-        pickle.dump(tf, blockchain.current_trans)
+        pickle.dump(blockchain.current_trans, tf)
     print (len(blockchain.chain))
+
+    return 'broadcast transaction success!', 201
 
 
 @app.route('/register_node', methods=['POST'])
