@@ -413,7 +413,7 @@ if __name__ == '__main__':
         blockchain.nodes = set(res['address_list'])
         print("register node succeed!")
 
-    allocate_key(config.CA_addresses)
+    # allocate_key(config.CA_addresses)
     print("get public keys success!")
 
     from argparse import ArgumentParser
