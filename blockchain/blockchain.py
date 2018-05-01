@@ -284,7 +284,7 @@ def post_crypto():
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
     for transaction in transactions:
-        blockchain.new_transaction(*transaction)
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
     with open(config.transactions_file, 'wb') as tf:
         pickle.dump(tf, blockchain.current_trans)
 
@@ -300,11 +300,11 @@ def new_trans():
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    transaction = values.get('data')
+    transactions = values.get('data')
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
-    for each_tran in transaction:
-        blockchain.new_transaction(*each_tran)
+    for transaction in transactions:
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
     with open(config.transactions_file, 'wb') as tf:
         pickle.dump(tf, blockchain.current_trans)
     print (len(blockchain.chain))
