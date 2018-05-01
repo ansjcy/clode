@@ -177,11 +177,10 @@ class Blockchain:
 
             with open(config.transactions_file, 'rb') as tf:
                 current_trans = pickle.load(tf)
-                if blockchain.current_trans != current_trans:
-                    blockchain.current_trans = current_trans
-                    blockchain.new_block(proof, prev_hash)
-                    with open(config.chain_file, 'wb') as cf:
-                        pickle.dump(blockchain.chain, cf)
+                blockchain.current_trans = current_trans
+                blockchain.new_block(proof, prev_hash)
+                with open(config.chain_file, 'wb') as cf:
+                    pickle.dump(blockchain.chain, cf)
 
             with open(config.transactions_file, 'wb') as tf:
                 pickle.dump([], tf)
