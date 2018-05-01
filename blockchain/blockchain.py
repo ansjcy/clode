@@ -190,7 +190,6 @@ class Blockchain:
             if end_time - start_time < config.mine_time:
                 time.sleep(max(0, config.mine_time - (end_time - start_time)))
             print ('a new mine')
-            print (len(blockchain.chain))
 
     @property
     def last_block(self):
