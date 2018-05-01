@@ -383,7 +383,7 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url='http://'+config.evaluator_address + config.port + '/query', json={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/query', json={'crypto_list': query_body})
     return jsonify({'overlap': result['overlap']}), 200
 
 
@@ -410,10 +410,10 @@ if __name__ == '__main__':
     if myaddr != config.blockchain_address:
         res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
         res_json = res.json()
-        blockchain.nodes = set(res['address_list'])
+        blockchain.nodes = set(res_json['address_list'])
         print("register node succeed!")
 
-    allocate_key(config.CA_addresses)
+    # allocate_key(config.CA_addresses)
     print("get public keys success!")
 
     from argparse import ArgumentParser
