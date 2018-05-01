@@ -10,6 +10,7 @@ from Crypto.Util.number import GCD
 transactions = []
 cloud_name = ""
 pkeys = []
+isps = []
 
 def view():
 
@@ -24,15 +25,21 @@ def view():
             trans_id = input("please input transaction id:\n")
             ISP_name = input("please input ISP name:\n")
             transactions.append([trans_id, ISP_name, 1])
-            ['cloud_id', 'transaction_id', 'isp_id', 'data']
-            data = {
+
+            data_list = []
+            for isp in isps:
+                data = {
                     'cloud_id': cloud_name,
                     'transaction_id': trans_id,
-                    'isp_id': ISP_name,
-                    'data': encrypt(1)
-            }
+                    'isp_id': isp,
+                    'data': encrypt(0)
+                }
+                if isp == ISP_name:
+                    data['data'] = encrypt(1)
+                data_list.append(data)
+
             requests.post(url='http://' + config.blockchain_address + config.port + '/crypto',
-                                   json=data)
+                                   json={'transactions': data_list})
             print ("transaction already sent to blockchain!")
 
         elif choose == 2:
@@ -81,6 +88,10 @@ if __name__ == '__main__':
 
     allocate_key(config.CA_address)
     print ("key allocation succceed!")
+
+    res = requests.get(config.blockchain_address + config.port + '/get_isp')
+    isps = res.json()
+    print ("get isps successfully!")
 
     view()
 

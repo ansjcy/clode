@@ -29,7 +29,11 @@ def get_transaction():
             }
             return jsonify(response), 201
 
-    return 400
+    response = {
+        'cloud_id': transaction[1],
+        'data': encrypt(0)
+    }
+    return jsonify(response), 201
 
 
 from argparse import ArgumentParser
