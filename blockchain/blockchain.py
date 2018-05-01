@@ -280,12 +280,14 @@ def post_crypto():
     if not equal(company_list, isp_list):
         return 'Wrong value!', 400
 
-    transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
+    # transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
+    # for each_tran in transaction:
+    #     blockchain.new_transaction(*each_tran)
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
-    for each_tran in transaction:
-        blockchain.new_transaction(*each_tran)
-    with open(config.transaction_file, 'wb') as tf:
+    for transaction in transactions:
+        blockchain.new_transaction(*transaction)
+    with open(config.transactions_file, 'wb') as tf:
         pickle.dump(tf, blockchain.current_trans)
 
     for neighbor in blockchain.nodes:
@@ -305,7 +307,7 @@ def new_trans():
         blockchain.chain = pickle.load(cf)
     for each_tran in transaction:
         blockchain.new_transaction(*each_tran)
-    with open(config.transaction_file, 'wb') as tf:
+    with open(config.transactions_file, 'wb') as tf:
         pickle.dump(tf, blockchain.current_trans)
     print (len(blockchain.chain))
 
