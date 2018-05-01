@@ -305,7 +305,7 @@ def new_trans():
         blockchain.chain = pickle.load(cf)
     for each_tran in transaction:
         blockchain.new_transaction(*each_tran)
-    with open(config.transaction_file, 'wb') as tf:
+    with open(config.transactions_file, 'wb') as tf:
         pickle.dump(tf, blockchain.current_trans)
     print (len(blockchain.chain))
 
