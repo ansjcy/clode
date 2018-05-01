@@ -307,6 +307,7 @@ def new_trans():
         blockchain.new_transaction(*each_tran)
     with open(config.transaction_file, 'wb') as tf:
         pickle.dump(tf, blockchain.current_trans)
+    print (len(blockchain.chain))
 
 
 @app.route('/register_node', methods=['POST'])
@@ -404,13 +405,13 @@ if __name__ == '__main__':
 
     print(myname)
     print(myaddr)
-    # if myaddr != config.blockchain_address:
-    #     res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
-    #     res_json = res.json()
-    #     blockchain.nodes = set(res['address_list'])
-    #     print("register node succeed!")
+    if myaddr != config.blockchain_address:
+        res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
+        res_json = res.json()
+        blockchain.nodes = set(res['address_list'])
+        print("register node succeed!")
 
-    # allocate_key(config.CA_addresses)
+    allocate_key(config.CA_addresses)
     print("get public keys success!")
 
     from argparse import ArgumentParser
@@ -420,7 +421,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    while (1):
-        print(len(blockchain.chain))
-        time.sleep(1)
     app.run(host=myaddr, port=port)
