@@ -1,8 +1,6 @@
 evaluator/evaluator/
-evaluator/key.txt
-evaluator/__pycache__/
-evaluator/app/__pycache__/
-evaluator/.idea
+evaluator/key*
+evaluator/.idea/
 evaluator/Key1.pem
 *.iml
 *.iml
