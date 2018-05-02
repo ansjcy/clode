@@ -186,7 +186,7 @@ class Node:
         cnt = 0
         n = len(pairs[0])
         for p in pairs:
-            if sum(p) == n:
+            if sum(p) == n * config.BASE:
                 cnt += 1
         return float(cnt)/len(pairs)
 

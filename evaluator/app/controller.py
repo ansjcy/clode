@@ -2,7 +2,6 @@ from app import app
 from app import node
 from flask import request
 import json
-import config
 
 @app.route('/overlap', methods=['POST'])
 def get_overlap():
