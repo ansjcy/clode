@@ -152,20 +152,6 @@ class Blockchain:
 
         return proof
 
-    def mine(self):
-
-        while (not exit_signal):
-            start_time = time.time()
-
-            proof = self.proof_of_work(self.last_block)
-            prev_hash = self.hash(self.last_block)
-            self.new_block(proof, prev_hash)
-
-            end_time = time.time()
-            if end_time - start_time < 60:
-                time.sleep(60 - (end_time - start_time))
-            print ('a new mine')
-
     @staticmethod
     def valid_proof(last_proof, proof, last_hash):
         """
@@ -179,6 +165,31 @@ class Blockchain:
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
+
+    @staticmethod
+    def mine(blockchain):
+
+        while (not exit_signal):
+            start_time = time.time()
+
+            proof = blockchain.proof_of_work(blockchain.last_block)
+            prev_hash = blockchain.hash(blockchain.last_block)
+
+            with open(config.transactions_file, 'rb') as tf:
+                current_trans = pickle.load(tf)
+                blockchain.current_trans = current_trans
+                blockchain.new_block(proof, prev_hash)
+                with open(config.chain_file, 'wb') as cf:
+                    pickle.dump(blockchain.chain, cf)
+
+            with open(config.transactions_file, 'wb') as tf:
+                pickle.dump([], tf)
+
+            end_time = time.time()
+
+            if end_time - start_time < config.mine_time:
+                time.sleep(max(0, config.mine_time - (end_time - start_time)))
+            print ('a new mine')
 
     @property
     def last_block(self):
@@ -224,21 +235,23 @@ def encrypt(data):
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
 
-    # def fun(resolve, reject, address):
-    #     requests.post(url=neighbor + '/get_transaction', json={'transaction_id': values.get('transaction_id')})
-    #     resolve('')
+    # give company list and isp list
     def equal(data1, data2):
-        result = requests.post(url='http://' + config.evaluator_address + config.port + '/is_zero', json={'data': data1 - data2}).json()
+        result = requests.post(url='http://' + config.CA_addresses[0] + config.port + '/verify', json={'data1': data1, 'data2': data2}).json()
         return result['result'] == 0
-
     values = request.get_json()
-    required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
+    # required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
+    # if not all(k in values for k in required):
+    #     return 'Missing values', 400
+    # transaction_id = values.get('transaction_id')
+    # cloud_id = values.get('cloud_id')
+    # isp_id = values.get('isp_id')
+    # data = values.get('data')
+    required = ['transactions']
     if not all(k in values for k in required):
         return 'Missing values', 400
-    transaction_id = values.get('transaction_id')
-    cloud_id = values.get('cloud_id')
-    isp_id = values.get('isp_id')
-    data = values.get('data')
+    transactions = values.get('transactions')
+
     # buffer[transaction_id] = []
     # for isp in blockchain.isps:
     #     result = requests.post(url=blockchain.isps[isp] + '/get_transaction', json={'transaction_id': transaction_id}).json()
@@ -248,16 +261,35 @@ def post_crypto():
     #         'data': result['data']
     #     })
 
-    result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id}).json()
-    if not equal(result['data'], data) or not cloud_id == result['cloud_id']:
+    # result = requests.post(url='http://' + blockchain.isps[isp_id] + config.port + '/get_transaction',
+    #                        json={'transaction_id': transaction_id}).json()
+    # if not equal(result['data'], data) or not cloud_id == result['cloud_id']:
+    #     return 'Wrong value!', 400
+    company_list = []
+    isp_list = []
+    for d in transactions:
+        transaction_id = d['transaction_id']
+        cloud_id = d['cloud_id']
+        isp_id = d['isp_id']
+        data = d['data']
+        result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id}).json()
+        company_list.append(data)
+        isp_list.append(result['data'])
+    if not equal(company_list, isp_list):
         return 'Wrong value!', 400
 
-    transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
-    for each_tran in transaction:
-        blockchain.new_transaction(*each_tran)
+    # transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
+    # for each_tran in transaction:
+    #     blockchain.new_transaction(*each_tran)
+    with open(config.chain_file, 'rb') as cf:
+        blockchain.chain = pickle.load(cf)
+    for transaction in transactions:
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
+    with open(config.transactions_file, 'wb') as tf:
+        pickle.dump(blockchain.current_trans, tf)
 
     for neighbor in blockchain.nodes:
-        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transaction}).json()
+        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transactions}).json()
 
     return 'post transaction success!', 201
 
@@ -268,9 +300,16 @@ def new_trans():
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    transaction = values.get('data')
-    for each_tran in transaction:
-        blockchain.new_transaction(*each_tran)
+    transactions = values.get('data')
+    with open(config.chain_file, 'rb') as cf:
+        blockchain.chain = pickle.load(cf)
+    for transaction in transactions:
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
+    with open(config.transactions_file, 'wb') as tf:
+        pickle.dump(blockchain.current_trans, tf)
+    print (len(blockchain.chain))
+
+    return 'broadcast transaction success!', 201
 
 
 @app.route('/register_node', methods=['POST'])
@@ -344,17 +383,26 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url='http://'+config.evaluator_address + config.port + '/query', json={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/query', json={'crypto_list': query_body})
     return jsonify({'overlap': result['overlap']}), 200
 
 
 @app.route('/get_chain', methods=['GET'])
 def get_chain():
-    return jsonify({'chain': blockchain.chain}), 200
+    print(len(blockchain.chain))
+    return jsonify({'chain': len(blockchain.chain)}), 200
+
+@app.route('/get_isp', methods=['GET'])
+def get_isp():
+    return jsonify({'isp_list': blockchain.isps}), 200
 
 
 if __name__ == '__main__':
-    p = Process(target=blockchain.mine)
+
+    with open(config.transactions_file, 'wb') as tf:
+        pickle.dump([], tf);
+
+    p = Process(target=Blockchain.mine, args=(blockchain, ))
     p.start()
 
     print(myname)
@@ -362,10 +410,10 @@ if __name__ == '__main__':
     if myaddr != config.blockchain_address:
         res = requests.post(url='http://'+config.blockchain_address + config.port +'/register_node', json={'address': myaddr})
         res_json = res.json()
-        blockchain.nodes = set(res['address_list'])
-        print("register node success!")
+        blockchain.nodes = set(res_json['address_list'])
+        print("register node succeed!")
 
-    allocate_key(config.CA_addresses)
+    # allocate_key(config.CA_addresses)
     print("get public keys success!")
 
     from argparse import ArgumentParser
