@@ -70,23 +70,23 @@ def verify(cloud, isp, ip, port):
     r = requests.post(url=URL, json=data)
     return r.json()['res']
 
-# cloud1 = [1, 0]
-# key = get_public_key(config.SERVER_A_IP, config.PORT)
-# encrypted = encrypt(key, cloud1)
-# multi_encryption_1 = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
-# cloud2 = [1, 0]
-# encrypted = encrypt(key, cloud2)
-# multi_encryption_2 = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
-# pairs = [[multi_encryption_1[0], multi_encryption_2[0]], [multi_encryption_1[1], multi_encryption_2[1]]]
-# res = get_overlap(pairs, config.SERVER_A_IP, config.PORT)
-# print(res)
-
-cloud = [2, 1, 1]
+cloud1 = [2, 1, 2]
 key = get_public_key(config.SERVER_A_IP, config.PORT)
-encrypted = encrypt(key, cloud)
-cloud_encrypted = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
-isp = [2, 2, 1]
-encrypted = encrypt(key, isp)
-isp_encrypted = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
-res = verify(cloud_encrypted, isp_encrypted, config.SERVER_A_IP, config.PORT)
+encrypted = encrypt(key, cloud1)
+multi_encryption_1 = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
+cloud2 = [2, 1, 2]
+encrypted = encrypt(key, cloud2)
+multi_encryption_2 = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
+pairs = [[multi_encryption_1[0], multi_encryption_2[0]], [multi_encryption_1[1], multi_encryption_2[1]]]
+res = get_overlap(pairs, config.SERVER_A_IP, config.PORT)
 print(res)
+
+# cloud = [2, 1, 1]
+# key = get_public_key(config.SERVER_A_IP, config.PORT)
+# encrypted = encrypt(key, cloud)
+# cloud_encrypted = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
+# isp = [2, 2, 1]
+# encrypted = encrypt(key, isp)
+# isp_encrypted = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
+# res = verify(cloud_encrypted, isp_encrypted, config.SERVER_A_IP, config.PORT)
+# print(res)

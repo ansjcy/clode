@@ -29,7 +29,7 @@ class Node:
             p = int(f.readline())
             g = int(f.readline())
             x = int(f.readline())
-            y = pow(g, x, p)
+            y = int(f.readline())
         self.key = ElGamal.construct((p, g, y, x))
         print('finish initialization')
 
