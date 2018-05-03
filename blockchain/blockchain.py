@@ -373,14 +373,18 @@ def query():
             for id in cloud_list:
                 if trans['cloud_id'] == id:
                     if trans['isp_id'] not in cloud_trans[id]:
-                        cloud_trans[id][trans['isp_id']] = 0
-                    cloud_trans[id][trans['isp_id']] += trans['data']
+                        cloud_trans[id][trans['isp_id']] = [1, 1]
+                    cloud_trans[id][trans['isp_id']][0] *= trans['data'][0]
+                    cloud_trans[id][trans['isp_id']][1] *= trans['data'][1]
     for trans in blockchain.current_trans:
         for id in cloud_list:
             if trans['cloud_id'] == id:
                 if trans['isp_id'] not in cloud_trans[id]:
-                    cloud_trans[id][trans['isp_id']] = 0
-                cloud_trans[id][trans['isp_id']] += trans['data']
+                    cloud_trans[id][trans['isp_id']] = [1, 1]
+                print(cloud_trans[id][trans['isp_id']])
+                print(trans['data'])
+                cloud_trans[id][trans['isp_id']][0] += trans['data'][0]
+                cloud_trans[id][trans['isp_id']][1] += trans['data'][1]
     print(cloud_trans)
     query_body = []
     isps = cloud_trans[0].keys()
