@@ -359,9 +359,11 @@ def query():
     values = request.get_json()
     required = ['cloud_list']
     if not all(k in values for k in required):
+        print('Missing values')
         return 'Missing values', 400
     cloud_list = values.get('cloud_list')
     if len(cloud_list) < 2:
+        print('cloud list too short!')
         return 'cloud list too short!', 400
     cloud_trans = {}
     for id in cloud_list:
@@ -379,13 +381,14 @@ def query():
                 if trans['isp_id'] not in cloud_trans[id]:
                     cloud_trans[id][trans['isp_id']] = 0
                 cloud_trans[id][trans['isp_id']] += trans['data']
-
+    print(cloud_trans)
     query_body = []
     isps = cloud_trans[0].keys()
     for isp in isps:
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
+    print(query_body)
     result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/overlap', json={'crypto_list': query_body}).json()
     return jsonify({'overlap': result['overlap']}), 200
 
