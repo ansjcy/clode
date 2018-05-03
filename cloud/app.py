@@ -6,6 +6,7 @@ import random
 import math
 from Crypto.PublicKey import ElGamal
 from Crypto.Util.number import GCD
+from multiprocessing import Process
 
 transactions = []
 cloud_name = ""
@@ -27,6 +28,7 @@ def view():
             transactions.append([trans_id, ISP_name, 1])
 
             data_list = []
+            sync_isp_list()
             for isp in isps:
                 data = {
                     'cloud_id': cloud_name,
@@ -37,6 +39,7 @@ def view():
                 if isp == ISP_name:
                     data['data'] = encrypt(1)
                 data_list.append(data)
+            print (data_list)
 
             requests.post(url='http://' + config.blockchain_address + config.port + '/crypto',
                                    json={'transactions': data_list})
@@ -61,12 +64,12 @@ def view():
 def allocate_key(address_list):
 
     for address in address_list:
-        res = requests.get(url=address + '/public_key')
+        res = requests.get(url="http://" + address + config.port + '/public_key')
         res = res.json()
         p = res['p']
         g = res['g']
         y = res['y']
-        pkey = ElGamal.construct(int(p), int(g), int(y))
+        pkey = ElGamal.construct((int(p), int(g), int(y)))
         pkeys.append(pkey)
 
     return pkeys
@@ -79,14 +82,28 @@ def encrypt(data):
         while 1:
             k = random.randint(1, pkey.p - 1)
             if GCD(k, pkey.p - 1) == 1: break
-        data = pkey.publickey().encrypt(data, k)
+        data = [pkey.publickey()._encrypt(data, k)]
 
-    res = requests.post(config.encrypt_address + config.port + '/encrypt',
+    res = requests.post("http://" + config.encrypt_server + config.port + '/encrypt',
                   json = {'encrypter_id': 'ip-172-31-16-11',
                           'cipher': data})
 
+    return res.json()['cipher']
 
-    return res.json()
+def update_isp_list():
+
+    while (1):
+
+        res = requests.get("http://" + config.blockchain_address + config.port + '/get_isp')
+        isps = res.json()['isp_list']
+        with open('./data/isp_list', 'wb') as ispf:
+            pickle.dump(isps, ispf)
+        time.sleep(config.isp_list_update_time)
+
+def sync_isp_list():
+
+    with open('./data/isp_list', 'rb') as ispf:
+        isps = pickle.load(ispf)
 
 
 if __name__ == '__main__':
@@ -95,11 +112,13 @@ if __name__ == '__main__':
     allocate_key(config.CA_address)
     print ("key allocation succceed!")
 
-    res = requests.get(config.blockchain_address + config.port + '/get_isp')
-    isps = res.json()
-    print ("get isps successfully!")
+    p = Process(target=update_isp_list)
+    p.start()
 
     view()
+
+    p.terminate()
+    p.join()
 
 
 
