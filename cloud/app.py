@@ -80,7 +80,12 @@ def encrypt(data):
             if GCD(k, pkey.p - 1) == 1: break
         data = pkey.publickey().encrypt(data, k)
 
-    return data
+    res = requests.post(config.encrypt_address + config.port + '/encrypt',
+                  json = {'encrypter_id': 'ip-172-31-16-11',
+                          'cipher': data})
+
+
+    return res.json()
 
 
 if __name__ == '__main__':

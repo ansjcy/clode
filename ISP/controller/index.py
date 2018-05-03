@@ -25,7 +25,7 @@ def get_transaction():
         if transaction[0] == transaction_id:
             response = {
                 'cloud_id': transaction[1],
-                'data': encrypt(-transaction[2])
+                'data': encrypt(transaction[2])
             }
             return jsonify(response), 201
 
