@@ -46,6 +46,8 @@ def view():
             trans_id = input("please input transaction id:\n")
             cloud_name = input("please input cloud name:\n")
             transactions.append([trans_id, cloud_name, 1])
+            with open('./data/transactions', 'wb') as tf:
+                pickle.dump(transactions, tf)
 
         elif choose == 2:
 
