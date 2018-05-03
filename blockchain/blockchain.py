@@ -215,22 +215,12 @@ exit_signal = False
 def allocate_key(address_list):
 
     for address in address_list:
-        res = requests.get(url = address + config.port + '/public_key')
+        res = requests.get(url = 'http://' + address + config.port + '/public_key')
         res = res.json()
         pkeys.append(pickle.loads(res['public_key']))
 
     return pkeys
 
-
-def encrypt(data):
-
-    for pkey in pkeys:
-        while 1:
-            k = random.randint(1, pkey.p - 1)
-            if math.gcd(k, pkey.p - 1) == 1: break
-        data = pkey.publickey().encrypt(data, k)
-
-    return data
 
 @app.route('/crypto', methods=['POST'])
 def post_crypto():
@@ -413,7 +403,7 @@ if __name__ == '__main__':
         blockchain.nodes = set(res_json['address_list'])
         print("register node succeed!")
 
-    # allocate_key(config.CA_addresses)
+    allocate_key(config.CA_addresses)
     print("get public keys success!")
 
     from argparse import ArgumentParser
