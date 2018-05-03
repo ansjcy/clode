@@ -95,7 +95,7 @@ if __name__ == '__main__':
     allocate_key(config.CA_address)
     print ("key allocation succceed!")
 
-    res = requests.get(config.blockchain_address + config.port + '/get_isp')
+    res = requests.get("http://" + config.blockchain_address + config.port + '/get_isp')
     isps = res.json()
     print ("get isps successfully!")
 
