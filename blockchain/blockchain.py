@@ -392,7 +392,7 @@ def query():
         if not cloud_trans[k]:
             return jsonify({'overlap': 0}), 201
     query_body = []
-    isps = cloud_trans[cloud_trans.keys()[0]].keys()
+    isps = cloud_trans[list(cloud_trans.keys())[0]].keys()
     for isp in isps:
         query_body.append([])
         for id in cloud_trans:
