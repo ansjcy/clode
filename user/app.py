@@ -28,7 +28,7 @@ def view():
 
             res = requests.post(url="http://" + config.blockchain_address + config.port + '/query', json={'cloud_list': cloud_list})
             res = res.json()['overlap']
-            print("overlap: %d" % res)
+            print("overlap: %f" % res)
 
         elif choose == 2:
 
