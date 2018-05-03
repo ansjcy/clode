@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request
 from uuid import uuid4
 import socket
 import requests
+import pickle
 
 app = Flask(__name__)
 
@@ -22,6 +23,10 @@ def get_transaction():
 
     transaction_id = values.get('transaction_id')
     cloud_id = values.get('cloud_id')
+
+    with open('./data/transactions', 'rb') as tf:
+        transactions = pickle.load(tf)
+
     for transaction in transactions[::-1]:
 
         print(transaction[0])
