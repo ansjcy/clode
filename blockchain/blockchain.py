@@ -272,8 +272,8 @@ def post_crypto():
         data = d['data']
         result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id, 'cloud_id': cloud_id})
         result = result.json()
-        company_list.append(data)
-        isp_list.append(result['data'])
+        company_list.append(data[0])
+        isp_list.append(result['data']['cipher'][0])
     if not equal(company_list, isp_list):
         return 'Wrong value!', 400
 
