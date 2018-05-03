@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
-    res = requests.post(url="http://" + config.blockchain_address + config.port + '/register_ISP', json={'address': myaddr, 'name': myname})
+    res = requests.post(url="http://" + config.blockchain_address + config.port + '/register_isp', json={'address': myaddr, 'name': myname})
     print ("ISP register succeed!")
 
     import controller.index as index
