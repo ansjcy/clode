@@ -290,7 +290,7 @@ def post_crypto():
         pickle.dump(blockchain.current_trans, tf)
 
     for neighbor in blockchain.nodes:
-        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transactions}).json()
+        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transactions})
 
     return 'post transaction success!', 201
 
