@@ -61,7 +61,7 @@ def view():
 def allocate_key(address_list):
 
     for address in address_list:
-        res = requests.get(url=address + '/public_key')
+        res = requests.get(url=address + config.port + '/public_key')
         res = res.json()
         p = res['p']
         g = res['g']
