@@ -27,7 +27,7 @@ def view():
                 cloud_list.append(input())
 
             res = requests.get(url="http://" + config.blockchain_address + config.port + '/query', json={'cloud_list': cloud_list})
-            res = res.json()
+            res = res.json()['overlap']
             print("overlap: %d" % res)
 
         elif choose == 2:
