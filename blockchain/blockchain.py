@@ -285,12 +285,12 @@ def post_crypto():
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
     for transaction in transactions:
-        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'][0])
     with open(config.transactions_file, 'wb') as tf:
         pickle.dump(blockchain.current_trans, tf)
 
     for neighbor in blockchain.nodes:
-        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transactions}).json()
+        requests.post(url='http://'+ neighbor + config.port +'/new_transaction', json={'data': transactions})
 
     return 'post transaction success!', 201
 
@@ -305,7 +305,7 @@ def new_trans():
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
     for transaction in transactions:
-        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'][0])
     with open(config.transactions_file, 'wb') as tf:
         pickle.dump(blockchain.current_trans, tf)
     print (len(blockchain.chain))
@@ -359,9 +359,11 @@ def query():
     values = request.get_json()
     required = ['cloud_list']
     if not all(k in values for k in required):
+        print('Missing values')
         return 'Missing values', 400
     cloud_list = values.get('cloud_list')
     if len(cloud_list) < 2:
+        print('cloud list too short!')
         return 'cloud list too short!', 400
     cloud_trans = {}
     for id in cloud_list:
@@ -371,23 +373,33 @@ def query():
             for id in cloud_list:
                 if trans['cloud_id'] == id:
                     if trans['isp_id'] not in cloud_trans[id]:
-                        cloud_trans[id][trans['isp_id']] = 0
-                    cloud_trans[id][trans['isp_id']] += trans['data']
+                        cloud_trans[id][trans['isp_id']] = [1, 1]
+                    cloud_trans[id][trans['isp_id']][0] *= trans['data'][0]
+                    cloud_trans[id][trans['isp_id']][1] *= trans['data'][1]
     for trans in blockchain.current_trans:
         for id in cloud_list:
             if trans['cloud_id'] == id:
                 if trans['isp_id'] not in cloud_trans[id]:
-                    cloud_trans[id][trans['isp_id']] = 0
-                cloud_trans[id][trans['isp_id']] += trans['data']
-
+                    cloud_trans[id][trans['isp_id']] = [1, 1]
+                print(cloud_trans[id][trans['isp_id']])
+                print(trans['data'])
+                cloud_trans[id][trans['isp_id']][0] *= trans['data'][0]
+                cloud_trans[id][trans['isp_id']][1] *= trans['data'][1]
+    print(cloud_trans)
+    if not cloud_trans:
+        return jsonify({'overlap': 0}), 201
+    for k in cloud_trans:
+        if not cloud_trans[k]:
+            return jsonify({'overlap': 0}), 201
     query_body = []
-    isps = cloud_trans[0].keys()
+    isps = cloud_trans[list(cloud_trans.keys())[0]].keys()
     for isp in isps:
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
+    print(query_body)
     result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/overlap', json={'crypto_list': query_body}).json()
-    return jsonify({'overlap': result['overlap']}), 200
+    return jsonify({'overlap': result['overlap']}), 201
 
 
 @app.route('/get_chain', methods=['GET'])
