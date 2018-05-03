@@ -233,7 +233,7 @@ def post_crypto():
 
     # give company list and isp list
     def equal(data1, data2):
-        result = requests.post(url='http://' + config.CA_addresses[0] + config.port + '/verify', json={'data1': data1, 'data2': data2}).json()
+        result = requests.post(url='http://' + config.CA_addresses[0] + config.port + '/verify', json={'cloud': data1, 'isp': data2}).json()
         return result['result'] == 0
     values = request.get_json()
     # required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
