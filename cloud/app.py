@@ -73,6 +73,7 @@ def allocate_key(address_list):
 
 
 def encrypt(data):
+    data = int(math.pow(2, data))
 
     for pkey in pkeys:
         while 1:
