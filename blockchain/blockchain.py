@@ -381,8 +381,6 @@ def query():
             if trans['cloud_id'] == id:
                 if trans['isp_id'] not in cloud_trans[id]:
                     cloud_trans[id][trans['isp_id']] = [1, 1]
-                print(cloud_trans[id][trans['isp_id']])
-                print(trans['data'])
                 cloud_trans[id][trans['isp_id']][0] *= trans['data'][0]
                 cloud_trans[id][trans['isp_id']][1] *= trans['data'][1]
     print(cloud_trans)
@@ -399,6 +397,7 @@ def query():
             query_body[-1].append(cloud_trans[id][isp])
     print(query_body)
     result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/overlap', json={'crypto_list': query_body}).json()
+    print(result)
     return jsonify({'overlap': result['overlap']}), 201
 
 
