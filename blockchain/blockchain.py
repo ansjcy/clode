@@ -285,7 +285,7 @@ def post_crypto():
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
     for transaction in transactions:
-        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'][0])
     with open(config.transactions_file, 'wb') as tf:
         pickle.dump(blockchain.current_trans, tf)
 
@@ -305,7 +305,7 @@ def new_trans():
     with open(config.chain_file, 'rb') as cf:
         blockchain.chain = pickle.load(cf)
     for transaction in transactions:
-        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'])
+        blockchain.new_transaction(transaction['cloud_id'], transaction['isp_id'], transaction['data'][0])
     with open(config.transactions_file, 'wb') as tf:
         pickle.dump(blockchain.current_trans, tf)
     print (len(blockchain.chain))
@@ -383,8 +383,8 @@ def query():
                     cloud_trans[id][trans['isp_id']] = [1, 1]
                 print(cloud_trans[id][trans['isp_id']])
                 print(trans['data'])
-                cloud_trans[id][trans['isp_id']][0] += trans['data'][0]
-                cloud_trans[id][trans['isp_id']][1] += trans['data'][1]
+                cloud_trans[id][trans['isp_id']][0] *= trans['data'][0]
+                cloud_trans[id][trans['isp_id']][1] *= trans['data'][1]
     print(cloud_trans)
     query_body = []
     isps = cloud_trans[0].keys()
