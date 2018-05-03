@@ -96,7 +96,7 @@ if __name__ == '__main__':
     print ("key allocation succceed!")
 
     res = requests.get("http://" + config.blockchain_address + config.port + '/get_isp')
-    isps = res.json()
+    isps = res.json()['isp_list']
     print ("get isps successfully!")
 
     view()
