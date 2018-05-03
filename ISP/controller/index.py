@@ -24,7 +24,11 @@ def get_transaction():
     cloud_id = values.get('cloud_id')
     for transaction in transactions[::-1]:
 
+        print(transaction[0])
+        print(transaction_id)
         if transaction[0] == transaction_id:
+
+            print('OK')
 
             if cloud_id == transaction[1]:
                 response = {
