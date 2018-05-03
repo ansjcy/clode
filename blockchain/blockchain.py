@@ -236,6 +236,7 @@ def post_crypto():
         print(data1)
         print(data2)
         result = requests.post(url='http://' + config.CA_addresses[0] + config.port + '/verify', json={'cloud': data1, 'isp': data2}).json()
+        print(result)
         return result['res']
     values = request.get_json()
     # required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
