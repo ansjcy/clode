@@ -49,7 +49,7 @@ def view():
 def allocate_key(address_list):
 
     for address in address_list:
-        res = requests.get(url=address + '/public_key')
+        res = requests.get(url="http://" + address + '/public_key')
         res = res.json()
         p = res['p']
         g = res['g']
@@ -69,7 +69,7 @@ def encrypt(data):
             if GCD(k, pkey.p - 1) == 1: break
         data = pkey.publickey().encrypt(data, k)
 
-    res = requests.post(config.encrypt_address + config.port + '/encrypt',
+    res = requests.post(url = "http://" + config.encrypt_address + config.port + '/encrypt',
                   json = {'encrypter_id': 'ip-172-31-16-11',
                           'cipher': data})
 
@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
-    res = requests.post(url=config.blockchain_address + config.port + '/register_ISP', json={'address': myaddr, 'name': myname})
+    res = requests.post(url="http://" + "http://"config.blockchain_address + config.port + '/register_ISP', json={'address': myaddr, 'name': myname})
     print ("ISP register succeed!")
 
     import controller.index as index
