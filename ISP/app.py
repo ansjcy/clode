@@ -69,7 +69,7 @@ def encrypt(data):
             if GCD(k, pkey.p - 1) == 1: break
         data = pkey.publickey()._encrypt(data, k)
 
-    res = requests.post(url = "http://" + config.encrypt_address + config.port + '/encrypt',
+    res = requests.post(url = "http://" + config.encrypt_server + config.port + '/encrypt',
                   json = {'encrypter_id': 'ip-172-31-16-11',
                           'cipher': data})
 
