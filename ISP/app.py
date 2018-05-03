@@ -54,7 +54,7 @@ def allocate_key(address_list):
         p = res['p']
         g = res['g']
         y = res['y']
-        pkey = ElGamal.construct(int(p), int(g), int(y))
+        pkey = ElGamal.construct((int(p), int(g), int(y)))
         pkeys.append(pkey)
 
     return pkeys
