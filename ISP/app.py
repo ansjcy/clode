@@ -86,12 +86,13 @@ if __name__ == '__main__':
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
+    print (myaddr)
     res = requests.post(url="http://" + config.blockchain_address + config.port + '/register_isp', json={'address': myaddr, 'name': server_name})
     print ("ISP register succeed!")
 
     import controller.index as index
 
-    p = Process(target=index.app.run, args=(config.host, index.port))
+    p = Process(target=index.app.run, args=(myaddr, index.port))
     p.start()
     print ("server running!")
 
