@@ -233,8 +233,10 @@ def post_crypto():
 
     # give company list and isp list
     def equal(data1, data2):
+        print(data1)
+        print(data2)
         result = requests.post(url='http://' + config.CA_addresses[0] + config.port + '/verify', json={'cloud': data1, 'isp': data2}).json()
-        return result['result'] == 0
+        return result['overlap'] == 0
     values = request.get_json()
     # required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
     # if not all(k in values for k in required):
@@ -270,7 +272,11 @@ def post_crypto():
         data = d['data']
         print(isp_id)
         print(transaction_id)
-        result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id}).json()
+        print('http://'+blockchain.isps[isp_id] + config.port + '/get_transaction')
+        result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id, 'cloud_id': cloud_id})
+        print(result)
+        result = result.json()
+        print(result)
         company_list.append(data)
         isp_list.append(result['data'])
     if not equal(company_list, isp_list):
@@ -342,6 +348,8 @@ def register_isp():
         return 'Missing values', 400
     address = values.get('address')
     name = values.get('name')
+    print('351' + str(address))
+    print('352' + str(name))
     if name not in blockchain.isps:
         blockchain.isps[name] = address
         for neighbor in blockchain.nodes:
