@@ -275,6 +275,7 @@ def post_crypto():
         company_list.append(data[0])
         isp_list.append(result['data']['cipher'][0])
     if not equal(company_list, isp_list):
+        print('wrong value!')
         return 'Wrong value!', 400
 
     # transaction = [[cloud_id, isp, data] if isp == isp_id else [cloud_id, isp, encrypt(0)] for isp in blockchain.isps]
