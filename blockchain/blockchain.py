@@ -236,7 +236,7 @@ def post_crypto():
         print(data1)
         print(data2)
         result = requests.post(url='http://' + config.CA_addresses[0] + config.port + '/verify', json={'cloud': data1, 'isp': data2}).json()
-        return result['overlap'] == 0
+        return result['res']
     values = request.get_json()
     # required = ['cloud_id', 'transaction_id', 'isp_id', 'data']
     # if not all(k in values for k in required):
@@ -384,7 +384,7 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/overlap', json={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/overlap', json={'crypto_list': query_body}).json()
     return jsonify({'overlap': result['overlap']}), 200
 
 
