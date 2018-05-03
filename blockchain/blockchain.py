@@ -268,6 +268,8 @@ def post_crypto():
         cloud_id = d['cloud_id']
         isp_id = d['isp_id']
         data = d['data']
+        print(isp_id)
+        print(transaction_id)
         result = requests.post(url='http://'+blockchain.isps[isp_id] + config.port + '/get_transaction', json={'transaction_id': transaction_id}).json()
         company_list.append(data)
         isp_list.append(result['data'])
@@ -379,7 +381,7 @@ def query():
         query_body.append([])
         for id in cloud_trans:
             query_body[-1].append(cloud_trans[id][isp])
-    result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/query', json={'crypto_list': query_body})
+    result = requests.post(url='http://'+config.CA_addresses[0] + config.port + '/overlap', json={'crypto_list': query_body})
     return jsonify({'overlap': result['overlap']}), 200
 
 
