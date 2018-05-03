@@ -14,6 +14,23 @@ transactions = []
 server_name = ""
 pkeys = []
 
+def allocate_key(address_list):
+
+    for address in address_list:
+        res = requests.get(url="http://" + address + config.port + '/public_key')
+        res = res.json()
+        p = res['p']
+        g = res['g']
+        y = res['y']
+        pkey = ElGamal.construct((int(p), int(g), int(y)))
+        pkeys.append(pkey)
+
+    return pkeys
+
+allocate_key(config.CA_address)
+print ("key allocation succceed!")
+print(pkeys)
+
 def view():
 
     print ('loading...')
@@ -46,28 +63,17 @@ def view():
 
             print ("invalid choice")
 
-def allocate_key(address_list):
-
-    for address in address_list:
-        res = requests.get(url="http://" + address + config.port + '/public_key')
-        res = res.json()
-        p = res['p']
-        g = res['g']
-        y = res['y']
-        pkey = ElGamal.construct((int(p), int(g), int(y)))
-        pkeys.append(pkey)
-
-    return pkeys
 
 
 def encrypt(data):
     data = int(math.pow(2, data))
-
+    print(pkeys)
     for pkey in pkeys:
         while 1:
             k = random.randint(1, pkey.p - 1)
-            if GCD(k, pkey.p - 1) == 1: break
+            if GCD(k, int(pkey.p - 1)) == 1: break
         data = [pkey.publickey()._encrypt(data, k)]
+    print('fuck')
     print(data)
 
     res = requests.post(url = "http://" + config.encrypt_server + config.port + '/encrypt',
@@ -82,8 +88,6 @@ if __name__ == '__main__':
     print ("please set server name!")
     server_name = input("")
 
-    allocate_key(config.CA_address)
-    print ("key allocation succceed!")
 
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
