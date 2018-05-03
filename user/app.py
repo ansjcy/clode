@@ -26,7 +26,7 @@ def view():
                 print("please enter cloud name")
                 cloud_list.append(input())
 
-            res = requests.get(url="http://" + config.blockchain_address + config.port + '/query', json={'cloud_list': cloud_list})
+            res = requests.post(url="http://" + config.blockchain_address + config.port + '/query', json={'cloud_list': cloud_list})
             res = res.json()['overlap']
             print("overlap: %d" % res)
 

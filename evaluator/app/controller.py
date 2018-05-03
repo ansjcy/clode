@@ -21,12 +21,18 @@ def return_public_key():
 @app.route('/verify', methods=['POST'])
 def verify():
     values = request.get_json()
+    required = ['cloud', 'isp']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
     res = node.verify(values['cloud'], values['isp'])
     return json.dumps({'res': res})
 
 @app.route('/encrypt', methods=['POST'])
 def encrypt():
     values = request.get_json()
+    required = ['cipher', 'encrypter_id']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
     cipher = node.encrypt(values['cipher'], values['encrypter_id'])
     return json.dumps({'cipher': cipher})
 
