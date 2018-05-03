@@ -37,6 +37,7 @@ def view():
                 if isp == ISP_name:
                     data['data'] = encrypt(1)
                 data_list.append(data)
+            print (data_list)
 
             requests.post(url='http://' + config.blockchain_address + config.port + '/crypto',
                                    json={'transactions': data_list})
@@ -85,8 +86,7 @@ def encrypt(data):
                   json = {'encrypter_id': 'ip-172-31-16-11',
                           'cipher': data})
 
-
-    return res.json()
+    return res.json()['cipher']
 
 
 if __name__ == '__main__':
