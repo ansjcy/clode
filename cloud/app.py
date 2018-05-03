@@ -6,6 +6,7 @@ import random
 import math
 from Crypto.PublicKey import ElGamal
 from Crypto.Util.number import GCD
+from multiprocessing import Process
 
 transactions = []
 cloud_name = ""
@@ -27,6 +28,7 @@ def view():
             transactions.append([trans_id, ISP_name, 1])
 
             data_list = []
+            sync_isp_list()
             for isp in isps:
                 data = {
                     'cloud_id': cloud_name,
@@ -88,6 +90,21 @@ def encrypt(data):
 
     return res.json()['cipher']
 
+def update_isp_list():
+
+    while (1):
+
+        res = requests.get("http://" + config.blockchain_address + config.port + '/get_isp')
+        isps = res.json()['isp_list']
+        with open('./data/isp_list', 'wb') as ispf:
+            pickle.dump(isps, ispf)
+        time.sleep(config.isp_list_update_time)
+
+def sync_isp_list():
+
+    with open('./data/isp_list', 'rb') as ispf:
+        isps = pickle.load(ispf)
+
 
 if __name__ == '__main__':
     cloud_name = input("please set cloud name:\n")
@@ -95,11 +112,13 @@ if __name__ == '__main__':
     allocate_key(config.CA_address)
     print ("key allocation succceed!")
 
-    res = requests.get("http://" + config.blockchain_address + config.port + '/get_isp')
-    isps = res.json()['isp_list']
-    print ("get isps successfully!")
+    p = Process(target=update_isp_list)
+    p.start()
 
     view()
+
+    p.terminate()
+    p.join()
 
 
 
