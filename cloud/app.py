@@ -28,7 +28,7 @@ def view():
             transactions.append([trans_id, ISP_name, 1])
 
             data_list = []
-            sync_isp_list()
+            isps = sync_isp_list()
             for isp in isps:
                 data = {
                     'cloud_id': cloud_name,
@@ -39,7 +39,6 @@ def view():
                 if isp == ISP_name:
                     data['data'] = encrypt(1)
                 data_list.append(data)
-            print (data_list)
 
             requests.post(url='http://' + config.blockchain_address + config.port + '/crypto',
                                    json={'transactions': data_list})
@@ -103,8 +102,9 @@ def update_isp_list():
 def sync_isp_list():
 
     with open('./data/isp_list', 'rb') as ispf:
-        isps = pickle.load(ispf)
+        res_isps = pickle.load(ispf)
 
+    return res_isps
 
 if __name__ == '__main__':
     cloud_name = input("please set cloud name:\n")
