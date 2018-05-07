@@ -1,5 +1,3 @@
-import http.client
-import json
 from Crypto import Random
 from Crypto.Random import random
 from Crypto.PublicKey import ElGamal
@@ -8,15 +6,11 @@ import random
 import math
 import config
 import sys
-import socket
 import requests
 from app.utils import inverse
 
 class Node:
-    def __init__(self, path):
-        # with open('key.pkl', 'wb') as output:
-        #     self.key = ElGamal.generate(1024, Random.new().read)
-        #     pickle.dump(self.key, output, pickle.HIGHEST_PROTOCOL)
+    def __init__(self, hostname):
         # with open('key.pkl', 'rb') as input:
         #     self.key = pickle.load(input)
         # self.key = ElGamal.generate(1024, Random.new().read)
@@ -25,16 +19,27 @@ class Node:
         #     f.write(str(self.key.g) + '\n')
         #     f.write(str(self.key.y) + '\n')
         #     f.write(str(self.key.x) + '\n')
+        self.hostname = hostname
+        if self.hostname == config.SERVER_A_HOSTNAME:
+            path = 'key1.txt'
+        elif self.hostname == config.SERVER_B_HOSTNAME:
+            path = 'key2.txt'
+        elif self.hostname == config.SERVER_C_HOSTNAME:
+            path = 'key3.txt'
+        else:
+            print('invalid hostname')
+            sys.exit(1)
+
         with open(path, 'r') as f:
-            p = int(f.readline())
-            g = int(f.readline())
+            p = config.P
+            g = config.G
             x = int(f.readline())
             y = int(f.readline())
         self.key = ElGamal.construct((p, g, y, x))
         print('finish initialization')
 
     def config(self):
-        self.hostname = socket.gethostname()
+
         self.key_dict={}
         self.neighbors={}
         if self.hostname == config.SERVER_A_HOSTNAME:

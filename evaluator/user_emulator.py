@@ -1,12 +1,13 @@
 import requests
 import config
-from Crypto import Random
+# from Crypto import Random
 from Crypto.Random import random
 from Crypto.PublicKey import ElGamal
 from Crypto.Util.number import GCD
 import random
-from app import Node as Node
-import json
+import numpy as np
+# from app import Node as Node
+# import json
 
 def get_public_key(ip, port):
     URL='http://'+ip+':'+str(port)+'/public_key'
@@ -70,6 +71,7 @@ def verify(cloud, isp, ip, port):
     r = requests.post(url=URL, json=data)
     return r.json()['res']
 
+num_isp = 3
 cloud1 = [2, 1, 2]
 key = get_public_key(config.SERVER_A_IP, config.PORT)
 encrypted = encrypt(key, cloud1)
@@ -77,7 +79,9 @@ multi_encryption_1 = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
 cloud2 = [2, 1, 2]
 encrypted = encrypt(key, cloud2)
 multi_encryption_2 = multi_encrypt(encrypted, config.SERVER_B_IP, config.PORT)
-pairs = [[multi_encryption_1[0], multi_encryption_2[0]], [multi_encryption_1[1], multi_encryption_2[1]]]
+pairs=[]
+for i in range(num_isp):
+    pairs.append([multi_encryption_1[i], multi_encryption_2[i]])
 res = get_overlap(pairs, config.SERVER_A_IP, config.PORT)
 print(res)
 
